@@ -1,3 +1,5 @@
 micronaut:
   application:
-    name: easeciWorker
+    name: easeci-worker
+  server:
+    port: 9001
