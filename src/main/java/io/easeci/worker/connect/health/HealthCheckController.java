@@ -1,4 +1,4 @@
-package io.easeci.worker.connect;
+package io.easeci.worker.connect.health;
 
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
