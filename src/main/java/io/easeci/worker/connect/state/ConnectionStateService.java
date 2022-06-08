@@ -6,6 +6,9 @@ import jakarta.inject.Singleton;
 public class ConnectionStateService {
 
     public ConnectionStateResponse checkConnectionState(ConnectionStateRequest connectionStateRequest) {
-        return null;
+        // mock todo
+        return ConnectionStateResponse.builder()
+                                      .nodeConnectionState(NodeConnectionState.ESTABLISHED)
+                                      .build();
     }
 }
