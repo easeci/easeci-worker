@@ -3,3 +3,6 @@ micronaut:
     name: easeci-worker
   server:
     port: 9001
+
+easeci:
+  worker-node-label: ${WORKER_NODE_LABEL:default}
