@@ -9,6 +9,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ConnectionStateResponse {
     private NodeConnectionState nodeConnectionState;
+    private NodeProcessingState nodeProcessingState;
     private String nodeIp;
     private String nodePort;
     private String domainName;

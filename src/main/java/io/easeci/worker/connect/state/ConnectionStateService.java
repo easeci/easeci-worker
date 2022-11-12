@@ -8,7 +8,8 @@ public class ConnectionStateService {
     public ConnectionStateResponse checkConnectionState(ConnectionStateRequest connectionStateRequest) {
         // mock todo
         return ConnectionStateResponse.builder()
-                                      .nodeConnectionState(NodeConnectionState.ESTABLISHED)
-                                      .build();
+                .nodeConnectionState(NodeConnectionState.ESTABLISHED)
+                .nodeProcessingState(NodeProcessingState.IDLE)
+                .build();
     }
 }
