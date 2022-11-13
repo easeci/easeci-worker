@@ -1,17 +1,9 @@
-## Micronaut 3.2.7 Documentation
+## How to build docker image via gradle wrapper:
+`$ ./gradlew dockerBuild`
+`$ docker tag easeci-worker:latest easeci-worker:0.0.1`
 
-- [User Guide](https://docs.micronaut.io/3.2.7/guide/index.html)
-- [API Reference](https://docs.micronaut.io/3.2.7/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/3.2.7/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
+## How to run it as docker container for test purpose:
+`$ docker run --rm --name easeci-worker -e WORKER_NODE_LABEL="My first dockerized worker node" -p 9001:9001 easeci-worker:0.0.1`
 
----
-
-## Feature rxjava3 documentation
-
-- [Micronaut RxJava 3 documentation](https://micronaut-projects.github.io/micronaut-rxjava3/snapshot/guide/index.html)
-
-## Feature http-client documentation
-
-- [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
-
+## How to run it as docker container:
+`$ docker run --rm -d --name easeci-worker -e WORKER_NODE_LABEL="My first dockerized worker node" -p 9001:9001 easeci-worker:0.0.1`
