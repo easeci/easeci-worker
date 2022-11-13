@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  easeci-worker-01:
+    image: easeci-worker:latest
+    ports:
+      - "9001:9001"
+    environment:
+      WORKER_NODE_LABEL: My first dockerized worker node
+  easeci-worker-02:
+    image: easeci-worker:latest
+    ports:
+      - "9002:9001"
+    environment:
+      WORKER_NODE_LABEL: My second dockerized worker node
+  easeci-worker-03:
+    image: easeci-worker:latest
+    ports:
+      - "9003:9001"
+    environment:
+      WORKER_NODE_LABEL: My third dockerized worker node
+  easeci-worker-04:
+    image: easeci-worker:latest
+    ports:
+      - "9004:9001"
+    environment:
+      WORKER_NODE_LABEL: My forth dockerized worker node
+  easeci-worker-05:
+    image: easeci-worker:latest
+    ports:
+      - "9005:9001"
+    environment:
+      WORKER_NODE_LABEL: My fifth dockerized worker node
