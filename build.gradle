@@ -22,16 +22,16 @@ micronaut {
 }
 
 dependencies {
-    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation("org.projectlombok:lombok:1.18.22")
     annotationProcessor("io.micronaut:micronaut-http-validation")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut.rxjava3:micronaut-rxjava3")
     implementation("io.micronaut.rxjava3:micronaut-rxjava3-http-client")
     implementation("jakarta.annotation:jakarta.annotation-api")
-    runtimeOnly("org.slf4j:slf4j-simple")
+    implementation("org.slf4j:slf4j-log4j12:2.0.3")
     implementation("io.micronaut:micronaut-validation")
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
 }
 
 
