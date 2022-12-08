@@ -16,10 +16,12 @@ import javax.validation.Valid;
 @Controller("/api/v1/pipeline/receive")
 public class PipelineExecutionController {
 
+    private PipelineExecutionFacade pipelineExecutionFacade;
+
     @Post
     @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse<?> checkConnectionState(@Body @Valid ScheduleRequest scheduleRequest) {
+    public HttpResponse<ScheduleResponse> checkConnectionState(@Body @Valid ScheduleRequest scheduleRequest) {
         log.info("Request for schedule pipeline job occurred: {}", scheduleRequest);
-        return HttpResponse.ok();
+        return HttpResponse.ok(pipelineExecutionFacade.mockResponse());
     }
 }
