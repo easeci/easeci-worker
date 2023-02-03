@@ -3,18 +3,17 @@ package io.easeci.worker.pipeline;
 import io.easeci.worker.connect.state.NodeConnectionState;
 import io.easeci.worker.connect.state.NodeProcessingState;
 import io.easeci.worker.engine.DockerPlatformRunner;
-import io.easeci.worker.engine.Runner;
 import jakarta.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
+
+import java.time.Instant;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.Base64;
 
-@Slf4j
+
 @Singleton
 public class PipelineExecutionFacade {
 

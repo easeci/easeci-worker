@@ -31,6 +31,7 @@ dependencies {
     implementation("jakarta.annotation:jakarta.annotation-api")
     implementation("org.slf4j:slf4j-log4j12:2.0.3")
     implementation("io.micronaut:micronaut-validation")
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
     implementation("com.github.docker-java:docker-java-core:3.2.14")
     implementation("com.github.docker-java:docker-java:3.2.14")
     implementation("com.github.docker-java:docker-java-transport-httpclient5:3.2.14")
