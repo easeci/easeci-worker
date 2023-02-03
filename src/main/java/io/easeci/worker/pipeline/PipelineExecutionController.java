@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 @Slf4j
 @AllArgsConstructor
@@ -20,8 +21,8 @@ public class PipelineExecutionController {
 
     @Post
     @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse<ScheduleResponse> checkConnectionState(@Body @Valid ScheduleRequest scheduleRequest) {
+    public HttpResponse<ScheduleResponse> handlePipelineExecution(@Body @Valid ScheduleRequest scheduleRequest) throws IOException {
         log.info("Request for schedule pipeline job occurred: {}", scheduleRequest);
-        return HttpResponse.ok(pipelineExecutionFacade.mockResponse());
+        return HttpResponse.ok(pipelineExecutionFacade.handlePipeline(scheduleRequest));
     }
 }

@@ -1,5 +1,6 @@
 package io.easeci.worker.pipeline;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.easeci.worker.connect.state.NodeConnectionState;
 import io.easeci.worker.connect.state.NodeProcessingState;
 import io.micronaut.core.annotation.Introspected;
@@ -18,4 +19,6 @@ public class ScheduleResponse {
     private NodeProcessingState nodeProcessingState;
     private long pipelineReceivedTime;
     private ScheduleErrorCode scheduleErrorCode;
+    @JsonProperty(value = "isSuccessfullyScheduled")
+    private Boolean isSuccessfullyScheduled;
 }
