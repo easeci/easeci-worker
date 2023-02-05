@@ -13,6 +13,8 @@ import java.nio.file.Path;
 @Controller("/api/v1/environment")
 public class EnvironmentController {
 
+    private DockerPlatformRunner dockerPlatformRunner;
+
     @Get
     void fetchDockerImage() {
         DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner();
@@ -21,7 +23,6 @@ public class EnvironmentController {
 
     @Get("/install")
     void runAndPrepareBuildContainer() {
-        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner();
         dockerPlatformRunner.runContainer(Path.of("/tmp/easeci-worker/fa8f011e-aedb-426c-a042-e0a8675cc468"));
     }
 }
