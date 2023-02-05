@@ -9,15 +9,34 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import io.micronaut.core.io.buffer.ByteBuffer;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.client.HttpClient;
+
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.netty.DefaultHttpClient;
+import io.reactivex.rxjava3.core.Flowable;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import reactor.core.publisher.Mono;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
+
 
 @Slf4j
+@Singleton
 public class DockerPlatformRunner implements Runner {
+
+    @Client
+    private HttpClient httpClient = new DefaultHttpClient();
 
     @Override
     public void execution(File file) {
@@ -95,7 +114,9 @@ public class DockerPlatformRunner implements Runner {
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd("easeci-debian-base:v1.0")
                 .withVolumes(new Volume(mountPoint.toString()))
                 .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
-                .withName("easeci-debian-base") // todo walidacja jeżeli nazwa istnieje
+                .withName("easeci-debian-base".concat(UUID.randomUUID().toString())) // todo walidacja jeżeli nazwa istnieje
+//                .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
+                .withTty(true)
                 .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
         log.info("Mounted path: {}", mountPoint);
         CreateContainerResponse container = containerCmd.exec();
@@ -105,12 +126,50 @@ public class DockerPlatformRunner implements Runner {
         StartContainerCmd startContainerCmd = dockerClient.startContainerCmd(container.getId());
         startContainerCmd.exec();
 
+        LogContainerCmd logContainerCmd = dockerClient.logContainerCmd(id)
+                .withStdOut(true)
+                .withStdErr(true)
+                .withSince(0)
+                .withFollowStream(true)
+                .withTimestamps(true);
+
+        logContainerCmd.exec(resultCallback(id));
+
+
         InspectContainerCmd inspectContainerCmd = dockerClient.inspectContainerCmd(id);
         InspectContainerResponse inspectContainerResponse = inspectContainerCmd.exec();
         InspectContainerResponse.ContainerState state = inspectContainerResponse.getState();
         System.out.println(state.getStatus());
+    }
 
-        dockerClient.removeContainerCmd("easeci-debian-base");
-        log.info("Container finished his job end is removed now");
+    private ResultCallback<Frame> resultCallback(String containerId) {
+        return new ResultCallback<Frame>() {
+            @Override
+            public void onStart(Closeable closeable) {
+                log.info("Start listening logs of container: {}", containerId);
+            }
+
+            @Override
+            public void onNext(Frame object) {
+                System.out.println(new String(object.getPayload()));
+                Mono.from(httpClient.exchange(HttpRequest.POST("https://webhook.site/b11770e6-7c7b-4cf0-a97c-2629147ec58d", new String(object.getPayload()))))
+                        .block();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+                log.info("Completed");
+            }
+
+            @Override
+            public void close() throws IOException {
+                log.info("Closing mechanism of listening logs of container: {}", containerId);
+            }
+        };
     }
 }
