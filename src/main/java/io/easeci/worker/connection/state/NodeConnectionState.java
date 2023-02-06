@@ -1,9 +1,10 @@
-package io.easeci.worker.connect.state;
+package io.easeci.worker.connection.state;
 
 public enum NodeConnectionState {
     REQUESTED,
     ESTABLISHED,
     CONNECTION_ERROR,
     TIMEOUT,
-    UNAUTHORIZED
+    UNAUTHORIZED,
+    UNKNOWN
 }
