@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 import java.io.*;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -108,13 +109,13 @@ public class DockerPlatformRunner implements Runner {
         });
     }
 
-    public void runContainer(Path mountPoint) {
+    public void runContainer(Path mountPoint, UUID pipelineContextId) {
         // create container
         DockerClient dockerClient = constructClient();
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd("easeci-debian-base:v1.0")
                 .withVolumes(new Volume(mountPoint.toString()))
                 .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
-                .withName("easeci-debian-base".concat(UUID.randomUUID().toString())) // todo walidacja jeżeli nazwa istnieje
+                .withName("easeci-debian-base".concat(pipelineContextId.toString()))
 //                .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
                 .withTty(true)
                 .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
@@ -131,9 +132,9 @@ public class DockerPlatformRunner implements Runner {
                 .withStdErr(true)
                 .withSince(0)
                 .withFollowStream(true)
-                .withTimestamps(true);
+                .withTimestamps(false);
 
-        logContainerCmd.exec(resultCallback(id));
+        logContainerCmd.exec(resultCallback(id, pipelineContextId));
 
 
         InspectContainerCmd inspectContainerCmd = dockerClient.inspectContainerCmd(id);
@@ -142,7 +143,7 @@ public class DockerPlatformRunner implements Runner {
         System.out.println(state.getStatus());
     }
 
-    private ResultCallback<Frame> resultCallback(String containerId) {
+    private ResultCallback<Frame> resultCallback(String containerId, UUID pipelineContextId) {
         return new ResultCallback<Frame>() {
             @Override
             public void onStart(Closeable closeable) {
@@ -151,8 +152,13 @@ public class DockerPlatformRunner implements Runner {
 
             @Override
             public void onNext(Frame object) {
-                System.out.println(new String(object.getPayload()));
-                Mono.from(httpClient.exchange(HttpRequest.POST("https://webhook.site/b11770e6-7c7b-4cf0-a97c-2629147ec58d", new String(object.getPayload()))))
+
+                log.info(new String(object.getPayload()));
+
+                EventRequest eventRequest = new EventRequest(pipelineContextId, UUID.randomUUID(), "worker-node-01",
+                        List.of(new IncomingLogEntry("Log", new String(object.getPayload()), "INFO", Instant.now().getEpochSecond())));
+
+                Mono.from(httpClient.exchange(HttpRequest.POST("http://localhost:9000/api/v1/ws/logs", eventRequest)))
                         .block();
             }
 
