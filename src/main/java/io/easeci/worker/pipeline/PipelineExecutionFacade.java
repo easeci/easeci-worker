@@ -40,9 +40,9 @@ public class PipelineExecutionFacade {
         Path file = Files.createFile(Path.of(pipelineContextDir.toString().concat("/pipeline-script.py")));
         Path executableFile = Files.write(file, scriptDecoded);
 
-//        runner.execution(executableFile.toFile());
 
-        runner.runContainer(pipelineContextDir);
+
+        runner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId());
         return mockResponse();
     }
 }

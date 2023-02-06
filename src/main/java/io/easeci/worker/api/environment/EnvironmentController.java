@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 @Slf4j
 @AllArgsConstructor
@@ -23,6 +24,6 @@ public class EnvironmentController {
 
     @Get("/install")
     void runAndPrepareBuildContainer() {
-        dockerPlatformRunner.runContainer(Path.of("/tmp/easeci-worker/fa8f011e-aedb-426c-a042-e0a8675cc468"));
+        dockerPlatformRunner.runContainer(Path.of("/tmp/easeci-worker/fa8f011e-aedb-426c-a042-e0a8675cc468"), UUID.randomUUID());
     }
 }
