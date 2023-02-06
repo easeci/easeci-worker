@@ -1,18 +1,21 @@
-package io.easeci.worker.connect.state;
+package io.easeci.worker.connection.state;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @AllArgsConstructor
-public class ConnectionStateResponse {
+class ConnectionStateResponse {
     private NodeConnectionState nodeConnectionState;
     private NodeProcessingState nodeProcessingState;
     private String nodeIp;
     private String nodePort;
     private String domainName;
     private String nodeName;
+    private UUID nodeId;
     private TransferProtocol transferProtocol;
 }

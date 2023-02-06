@@ -1,24 +1,26 @@
-package io.easeci.worker.pipeline;
+package io.easeci.worker.connection.info;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.easeci.worker.connection.state.NodeConnectionState;
 import io.easeci.worker.connection.state.NodeProcessingState;
-import io.micronaut.core.annotation.Introspected;
+import io.easeci.worker.connection.state.TransferProtocol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
-@Introspected
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleResponse {
+class InformationResponse {
     private NodeConnectionState nodeConnectionState;
     private NodeProcessingState nodeProcessingState;
-    private long pipelineReceivedTime;
-    private ScheduleErrorCode scheduleErrorCode;
-    @JsonProperty(value = "isSuccessfullyScheduled")
-    private Boolean isSuccessfullyScheduled;
+    private String nodeIp;
+    private String nodePort;
+    private String domainName;
+    private String nodeName;
+    private UUID nodeId;
+    private TransferProtocol transferProtocol;
 }

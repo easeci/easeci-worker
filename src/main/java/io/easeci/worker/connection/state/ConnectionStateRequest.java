@@ -1,11 +1,11 @@
-package io.easeci.worker.connect.state;
+package io.easeci.worker.connection.state;
 
 import io.micronaut.core.annotation.Introspected;
 import lombok.Data;
 
 @Data
 @Introspected
-public class ConnectionStateRequest {
+class ConnectionStateRequest {
     private String nodeIp;
     private String nodePort;
     private String domainName;

@@ -1,4 +1,4 @@
-package io.easeci.worker.connect.health;
+package io.easeci.worker.connection.health;
 
 public record HealthCheckResponse(String status) {
 }

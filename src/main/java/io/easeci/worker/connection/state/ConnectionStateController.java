@@ -1,4 +1,4 @@
-package io.easeci.worker.connect.state;
+package io.easeci.worker.connection.state;
 
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
@@ -11,14 +11,13 @@ import javax.validation.Valid;
 @Slf4j
 @AllArgsConstructor
 @Controller("/api/v1/connection/state")
-public class ConnectionStateController {
+class ConnectionStateController {
 
     private ConnectionStateService connectionStateService;
 
     @Post
     @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse<ConnectionStateResponse> checkConnectionState(@Body @Valid ConnectionStateRequest connectionStateRequest) {
-        log.info("Request for check connection state occurred from: {}", connectionStateRequest.getNodeIp());
+    HttpResponse<ConnectionStateResponse> checkConnectionState(@Body @Valid ConnectionStateRequest connectionStateRequest) {
         return HttpResponse.ok(connectionStateService.checkConnectionState(connectionStateRequest));
     }
 }
