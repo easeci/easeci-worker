@@ -1,9 +1,12 @@
 package io.easeci.worker.pipeline;
 
+import io.easeci.worker.connection.state.ConnectionStateService;
 import io.easeci.worker.connection.state.NodeConnectionState;
 import io.easeci.worker.connection.state.NodeProcessingState;
 import io.easeci.worker.engine.DockerPlatformRunner;
 import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 
@@ -14,10 +17,12 @@ import java.nio.file.Paths;
 import java.util.Base64;
 
 
+@Slf4j
 @Singleton
+@RequiredArgsConstructor
 public class PipelineExecutionFacade {
-
-    private final DockerPlatformRunner runner = new DockerPlatformRunner();
+    private final ConnectionStateService connectionStateService;
+    private final DockerPlatformRunner dockerPlatformRunner;
 
     public ScheduleResponse mockResponse() {
         return ScheduleResponse.builder()
@@ -30,6 +35,9 @@ public class PipelineExecutionFacade {
     }
 
     public ScheduleResponse handlePipeline(ScheduleRequest scheduleRequest) throws IOException {
+        NodeProcessingState nodeProcessingState = connectionStateService.startProcessingPipeline();
+        log.info("Pipeline processing with pipelineContextId: {} just started", scheduleRequest.getPipelineContextId());
+
         byte[] scriptDecoded = Base64.getDecoder().decode(scheduleRequest.getScriptEncoded());
 
         Path pipelineContextDir = Files.createDirectories(Paths.get("/tmp/easeci-worker/".concat(scheduleRequest.getPipelineContextId().toString())));
@@ -43,7 +51,7 @@ public class PipelineExecutionFacade {
 
 
 
-        runner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId());
+        dockerPlatformRunner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId());
         return mockResponse();
     }
 }

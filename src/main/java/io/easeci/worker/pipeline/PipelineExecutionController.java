@@ -15,13 +15,13 @@ import java.io.IOException;
 @Slf4j
 @AllArgsConstructor
 @Controller("/api/v1/pipeline/receive")
-public class PipelineExecutionController {
+class PipelineExecutionController {
 
     private PipelineExecutionFacade pipelineExecutionFacade;
 
     @Post
     @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse<ScheduleResponse> handlePipelineExecution(@Body @Valid ScheduleRequest scheduleRequest) throws IOException {
+    HttpResponse<ScheduleResponse> handlePipelineExecution(@Body @Valid ScheduleRequest scheduleRequest) throws IOException {
         log.info("Request for schedule pipeline job occurred: {}", scheduleRequest);
         return HttpResponse.ok(pipelineExecutionFacade.handlePipeline(scheduleRequest));
     }
