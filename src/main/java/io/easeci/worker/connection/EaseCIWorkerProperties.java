@@ -12,25 +12,25 @@ import java.util.UUID;
 @Data
 @ToString
 @Valid
-@ConfigurationProperties("easeci")
+@ConfigurationProperties("easeci.worker-node")
 public class EaseCIWorkerProperties {
 
     @NotNull
-    private String workerNodeName;
+    private String name;
 
     @NotNull
-    private UUID workerNodeId;
+    private UUID id;
 
     @NotNull
-    private TransferProtocol workerNodeTransferProtocol;
+    private TransferProtocol transferProtocol;
 
     @NotNull
-    private String workerNodeIp;
+    private String ip;
 
     @NotNull
-    private String workerNodePort;
+    private String port;
 
     @NotNull
-    private String workerNodeDomainName;
+    private String domainName;
 
 }

@@ -5,9 +5,10 @@ micronaut:
     port: 9001
 
 easeci:
-  worker-node-name: ${WORKER_NODE_NAME:default}
-  worker-node-id: ${random.uuid}
-  worker-node-ip: ${WORKER_NODE_IP:127.0.0.1}
-  worker-node-transfer-protocol: ${WORKER_NODE_TRANSFER_PROTOCOL:HTTPS}
-  worker-node-port: ${WORKER_NODE_PORT:9001}
-  worker-node-domain-name: ${WORKER_NODE_DOMAIN_NAME:}
+  worker-node:
+    name: ${WORKER_NODE_NAME:default}
+    id: ${random.uuid}
+    ip: ${WORKER_NODE_IP:127.0.0.1}
+    transfer-protocol: ${WORKER_NODE_TRANSFER_PROTOCOL:HTTPS}
+    port: ${WORKER_NODE_PORT:9001}
+    domain-name: ${WORKER_NODE_DOMAIN_NAME:}

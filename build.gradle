@@ -37,12 +37,8 @@ dependencies {
     implementation("com.github.docker-java:docker-java-transport-httpclient5:3.2.14")
     implementation 'io.projectreactor:reactor-core:3.5.2'
 
-    testImplementation "io.micronaut.test:micronaut-test-spock"
-    testImplementation("org.spockframework:spock-core") {
-        exclude group: "org.codehaus.groovy", module: "groovy-all"
-    }
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.1.1'
 }
-
 
 application {
     mainClass.set("io.easeci.worker.Application")
@@ -55,3 +51,7 @@ java {
 graalvmNative.toolchainDetection = false
 compileJava.options.fork = true
 compileJava.options.forkOptions.executable = '/usr/lib/jvm/java-17-openjdk-amd64/bin/javac'
+
+test {
+    useJUnitPlatform()
+}

@@ -4,44 +4,43 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
-import io.micronaut.core.io.buffer.ByteBuffer;
+import io.easeci.commons.observer.Publisher;
+import io.easeci.worker.connection.state.CurrentStateHolder;
+import io.easeci.worker.pipeline.PipelineState;
+import io.micronaut.context.annotation.Context;
 import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.HttpClient;
-
-import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.netty.DefaultHttpClient;
-import io.reactivex.rxjava3.core.Flowable;
-import jakarta.inject.Singleton;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-
 @Slf4j
-@Singleton
-public class DockerPlatformRunner implements Runner {
+@Context
+@RequiredArgsConstructor
+public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implements Runner {
 
-    @Client
-    private HttpClient httpClient = new DefaultHttpClient();
+    private final CurrentStateHolder currentStateHolder;
+    private final HttpClient httpClient = new DefaultHttpClient();
+    private final DockerClient dockerClient;
+
+    @PostConstruct
+    public void setup() {
+        addSubscriber(currentStateHolder);
+    }
 
     @Override
     public void execution(File file) {
-        DockerClient dockerClient = constructClient();
+        addSubscriber(currentStateHolder);
 //        InputStreamReader inputStreamReader = new InputStreamReader(response.getBody());
 //        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 //        bufferedReader.lines().forEach(System.out::println);
@@ -56,28 +55,7 @@ public class DockerPlatformRunner implements Runner {
 
     }
 
-    private DockerClient constructClient() {
-        DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .build();
-        log.info("Docker connection created with API Version: {}", dockerClientConfig.getApiVersion().getVersion());
-
-        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(dockerClientConfig.getDockerHost())
-                .sslConfig(dockerClientConfig.getSSLConfig())
-                .maxConnections(100)
-                .connectionTimeout(Duration.ofSeconds(30))
-                .responseTimeout(Duration.ofSeconds(45))
-                .build();
-
-        DockerHttpClient.Response response = httpClient.execute(DockerHttpClient.Request.builder()
-                .method(DockerHttpClient.Request.Method.GET).path("/version")
-                .build());
-        DockerClient dockerClient = DockerClientImpl.getInstance(dockerClientConfig, httpClient);
-        return dockerClient;
-    }
-
     public void fetchBuildContainer() {
-        DockerClient dockerClient = constructClient();
         PullImageCmd pullImageCmd = dockerClient.pullImageCmd("debian")
                 .withRepository("debian")
                 .withTag("stable-slim");
@@ -110,8 +88,10 @@ public class DockerPlatformRunner implements Runner {
     }
 
     public void runContainer(Path mountPoint, UUID pipelineContextId) {
+        log.info("Runner just received Pipeline to run with pipelineContextId: {}", pipelineContextId);
+        runPipelineEvent();
+
         // create container
-        DockerClient dockerClient = constructClient();
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd("easeci-debian-base:v1.0")
                 .withVolumes(new Volume(mountPoint.toString()))
                 .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
@@ -169,7 +149,8 @@ public class DockerPlatformRunner implements Runner {
 
             @Override
             public void onComplete() {
-                log.info("Completed");
+                log.info("Pipeline processing ends");
+                finishedPipelineEvent();
             }
 
             @Override
@@ -177,5 +158,15 @@ public class DockerPlatformRunner implements Runner {
                 log.info("Closing mechanism of listening logs of container: {}", containerId);
             }
         };
+    }
+
+    private void runPipelineEvent() {
+        PipelineStateEvent pipelineStateEvent = new PipelineStateEvent(PipelineState.RUN);
+        notifySubscribers(pipelineStateEvent);
+    }
+
+    private void finishedPipelineEvent() {
+        PipelineStateEvent pipelineStateEvent = new PipelineStateEvent(PipelineState.FINISHED);
+        notifySubscribers(pipelineStateEvent);
     }
 }

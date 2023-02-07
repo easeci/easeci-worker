@@ -15,12 +15,12 @@ public class WorkerNodeInfoService {
         return InformationResponse.builder()
                 .nodeConnectionState(stateQuery.getNodeConnectionState())
                 .nodeProcessingState(stateQuery.getProcessingState())
-                .nodeIp(easeCIWorkerProperties.getWorkerNodeIp())
-                .nodePort(easeCIWorkerProperties.getWorkerNodePort())
-                .domainName(easeCIWorkerProperties.getWorkerNodeDomainName())
-                .nodeName(easeCIWorkerProperties.getWorkerNodeName())
-                .transferProtocol(easeCIWorkerProperties.getWorkerNodeTransferProtocol())
-                .nodeId(easeCIWorkerProperties.getWorkerNodeId())
+                .nodeIp(easeCIWorkerProperties.getIp())
+                .nodePort(easeCIWorkerProperties.getPort())
+                .domainName(easeCIWorkerProperties.getDomainName())
+                .nodeName(easeCIWorkerProperties.getName())
+                .transferProtocol(easeCIWorkerProperties.getTransferProtocol())
+                .nodeId(easeCIWorkerProperties.getId())
                 .build();
     }
 }

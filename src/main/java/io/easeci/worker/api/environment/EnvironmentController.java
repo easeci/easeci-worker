@@ -18,8 +18,8 @@ public class EnvironmentController {
 
     @Get
     void fetchDockerImage() {
-        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner();
-        dockerPlatformRunner.fetchBuildContainer();
+//        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner();
+//        dockerPlatformRunner.fetchBuildContainer();
     }
 
     @Get("/install")

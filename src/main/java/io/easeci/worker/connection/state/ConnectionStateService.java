@@ -26,12 +26,16 @@ public class ConnectionStateService {
         return ConnectionStateResponse.builder()
                 .nodeConnectionState(stateQuery.getNodeConnectionState())
                 .nodeProcessingState(stateQuery.getProcessingState())
-                .nodeIp(easeCIWorkerProperties.getWorkerNodeIp())
-                .nodePort(easeCIWorkerProperties.getWorkerNodePort())
-                .domainName(easeCIWorkerProperties.getWorkerNodeDomainName())
-                .nodeName(easeCIWorkerProperties.getWorkerNodeName())
-                .transferProtocol(easeCIWorkerProperties.getWorkerNodeTransferProtocol())
-                .nodeId(easeCIWorkerProperties.getWorkerNodeId())
+                .nodeIp(easeCIWorkerProperties.getIp())
+                .nodePort(easeCIWorkerProperties.getPort())
+                .domainName(easeCIWorkerProperties.getName())
+                .nodeName(easeCIWorkerProperties.getName())
+                .transferProtocol(easeCIWorkerProperties.getTransferProtocol())
+                .nodeId(easeCIWorkerProperties.getId())
                 .build();
+    }
+
+    public NodeProcessingState startProcessingPipeline() {
+        return currentStateHolder.busy();
     }
 }
