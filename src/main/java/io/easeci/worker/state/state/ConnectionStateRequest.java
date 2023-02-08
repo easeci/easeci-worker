@@ -1,4 +1,4 @@
-package io.easeci.worker.connection.state;
+package io.easeci.worker.state.state;
 
 import io.micronaut.core.annotation.Introspected;
 import lombok.Data;

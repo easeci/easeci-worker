@@ -1,6 +1,6 @@
-package io.easeci.worker.connection.state;
+package io.easeci.worker.state.state;
 
-import io.easeci.worker.connection.EaseCIWorkerProperties;
+import io.easeci.worker.state.EaseCIWorkerProperties;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

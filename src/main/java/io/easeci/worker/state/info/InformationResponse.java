@@ -1,8 +1,8 @@
-package io.easeci.worker.connection.info;
+package io.easeci.worker.state.info;
 
-import io.easeci.worker.connection.state.NodeConnectionState;
-import io.easeci.worker.connection.state.NodeProcessingState;
-import io.easeci.worker.connection.state.TransferProtocol;
+import io.easeci.worker.state.state.NodeConnectionState;
+import io.easeci.worker.state.state.NodeProcessingState;
+import io.easeci.worker.state.state.TransferProtocol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

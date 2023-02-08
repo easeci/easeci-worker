@@ -1,8 +1,8 @@
 package io.easeci.worker.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.easeci.worker.connection.state.NodeConnectionState;
-import io.easeci.worker.connection.state.NodeProcessingState;
+import io.easeci.worker.state.state.NodeConnectionState;
+import io.easeci.worker.state.state.NodeProcessingState;
 import io.micronaut.core.annotation.Introspected;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

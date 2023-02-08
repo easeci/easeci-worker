@@ -5,7 +5,7 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import io.easeci.commons.observer.Publisher;
-import io.easeci.worker.connection.state.CurrentStateHolder;
+import io.easeci.worker.state.state.CurrentStateHolder;
 import io.easeci.worker.pipeline.PipelineState;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.http.HttpRequest;
@@ -30,8 +30,14 @@ import java.util.UUID;
 public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implements Runner {
 
     private final CurrentStateHolder currentStateHolder;
-    private final HttpClient httpClient = new DefaultHttpClient();
+    private final HttpClient httpClient;
     private final DockerClient dockerClient;
+
+    public DockerPlatformRunner(CurrentStateHolder currentStateHolder, DockerClientProvider dockerClientProvider) {
+        this.currentStateHolder = currentStateHolder;
+        this.httpClient = new DefaultHttpClient();
+        this.dockerClient = dockerClientProvider.defaultDockerClient();
+    }
 
     @PostConstruct
     public void setup() {

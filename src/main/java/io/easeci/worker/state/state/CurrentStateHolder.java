@@ -1,4 +1,4 @@
-package io.easeci.worker.connection.state;
+package io.easeci.worker.state.state;
 
 import io.easeci.commons.observer.Subscriber;
 import io.easeci.worker.engine.PipelineStateEvent;
