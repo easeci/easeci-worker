@@ -1,8 +1,8 @@
 package io.easeci.worker.pipeline;
 
-import io.easeci.worker.connection.state.ConnectionStateService;
-import io.easeci.worker.connection.state.NodeConnectionState;
-import io.easeci.worker.connection.state.NodeProcessingState;
+import io.easeci.worker.state.state.ConnectionStateService;
+import io.easeci.worker.state.state.NodeConnectionState;
+import io.easeci.worker.state.state.NodeProcessingState;
 import io.easeci.worker.engine.DockerPlatformRunner;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;

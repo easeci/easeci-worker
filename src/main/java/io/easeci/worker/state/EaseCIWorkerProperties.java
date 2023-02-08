@@ -1,6 +1,6 @@
-package io.easeci.worker.connection;
+package io.easeci.worker.state;
 
-import io.easeci.worker.connection.state.TransferProtocol;
+import io.easeci.worker.state.state.TransferProtocol;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import lombok.Data;
 import lombok.ToString;

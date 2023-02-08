@@ -1,4 +1,4 @@
-package io.easeci.worker.connection.info;
+package io.easeci.worker.state.info;
 
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;

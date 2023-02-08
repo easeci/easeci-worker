@@ -1,17 +1,17 @@
-package io.easeci.worker.connection.info;
+package io.easeci.worker.state.info;
 
-import io.easeci.worker.connection.EaseCIWorkerProperties;
-import io.easeci.worker.connection.state.StateQuery;
+import io.easeci.worker.state.EaseCIWorkerProperties;
+import io.easeci.worker.state.state.StateQuery;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 
 @Singleton
 @RequiredArgsConstructor
-public class WorkerNodeInfoService {
+class WorkerNodeInfoService {
     private final EaseCIWorkerProperties easeCIWorkerProperties;
     private final StateQuery stateQuery;
 
-    public InformationResponse getInfo() {
+    InformationResponse getInfo() {
         return InformationResponse.builder()
                 .nodeConnectionState(stateQuery.getNodeConnectionState())
                 .nodeProcessingState(stateQuery.getProcessingState())

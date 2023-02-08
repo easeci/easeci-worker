@@ -4,8 +4,8 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.Volume;
-import io.easeci.worker.connection.state.CurrentStateHolder;
-import io.easeci.worker.connection.state.NodeProcessingState;
+import io.easeci.worker.state.state.CurrentStateHolder;
+import io.easeci.worker.state.state.NodeProcessingState;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -32,7 +32,11 @@ class DockerPlatformRunnerTest {
         Mockito.when(dockerClient.createContainerCmd(anyString())).thenReturn(createContainerCmd);
         Mockito.when(dockerClient.startContainerCmd(containerId)).thenReturn(mockStartContainerCmd());
         Mockito.when(dockerClient.logContainerCmd(anyString())).thenReturn(logContainerCmd);
-        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner(currentStateHolder, dockerClient);
+
+        DockerClientProvider dockerClientProvider = Mockito.mock(DockerClientProvider.class);
+        Mockito.when(dockerClientProvider.defaultDockerClient()).thenReturn(dockerClient);
+
+        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner(currentStateHolder, dockerClientProvider);
 
         dockerPlatformRunner.setup();
         dockerPlatformRunner.runContainer(Paths.get("/"), UUID.randomUUID());
