@@ -1,6 +1,6 @@
 package io.easeci.worker.state.info;
 
-import io.easeci.worker.state.EaseCIWorkerProperties;
+import io.easeci.worker.properties.EaseCIWorkerProperties;
 import io.easeci.worker.state.state.StateQuery;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;

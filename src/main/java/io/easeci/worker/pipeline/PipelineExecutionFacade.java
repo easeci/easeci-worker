@@ -3,7 +3,7 @@ package io.easeci.worker.pipeline;
 import io.easeci.worker.state.state.ConnectionStateService;
 import io.easeci.worker.state.state.NodeConnectionState;
 import io.easeci.worker.state.state.NodeProcessingState;
-import io.easeci.worker.engine.DockerPlatformRunner;
+import io.easeci.worker.engine.docker.DockerPlatformRunner;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
