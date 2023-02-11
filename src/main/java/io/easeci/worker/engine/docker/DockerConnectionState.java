@@ -1,4 +1,4 @@
-package io.easeci.worker.engine;
+package io.easeci.worker.engine.docker;
 
 public enum DockerConnectionState {
     CONNECTED,

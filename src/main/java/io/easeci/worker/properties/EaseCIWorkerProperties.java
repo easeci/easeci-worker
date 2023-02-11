@@ -1,4 +1,4 @@
-package io.easeci.worker.state;
+package io.easeci.worker.properties;
 
 import io.easeci.worker.state.state.TransferProtocol;
 import io.micronaut.context.annotation.ConfigurationProperties;

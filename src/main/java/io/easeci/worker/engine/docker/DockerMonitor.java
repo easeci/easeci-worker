@@ -1,4 +1,4 @@
-package io.easeci.worker.engine;
+package io.easeci.worker.engine.docker;
 
 import com.github.dockerjava.transport.DockerHttpClient;
 

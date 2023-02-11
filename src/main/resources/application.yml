@@ -12,3 +12,9 @@ easeci:
     transfer-protocol: ${WORKER_NODE_TRANSFER_PROTOCOL:HTTPS}
     port: ${WORKER_NODE_PORT:9001}
     domain-name: ${WORKER_NODE_DOMAIN_NAME:}
+docker:
+  base-image:
+    resources-path: "dockerfiles/BaseImageDockerfile"
+    repository: debian
+    tag: stable-slim
+    produced-tag: easeci-worker-base-platform:1.0.0

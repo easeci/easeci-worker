@@ -1,4 +1,4 @@
-package io.easeci.worker.engine;
+package io.easeci.worker.engine.docker;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -12,21 +12,21 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
-import static io.easeci.worker.engine.DockerConnectionState.CONNECTED;
-import static io.easeci.worker.engine.DockerConnectionState.NOT_CONNECTED;
+import static io.easeci.worker.engine.docker.DockerConnectionState.CONNECTED;
+import static io.easeci.worker.engine.docker.DockerConnectionState.NOT_CONNECTED;
 
 @Slf4j
 @Singleton
-class DockerClientProvider implements DockerMonitor {
+public class DockerClientProvider implements DockerMonitor {
 
-    DockerClient defaultDockerClient() {
+    public DockerClient defaultDockerClient() {
         DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
         log.info("Docker connection created with API Version: {}", dockerClientConfig.getApiVersion().getVersion());
         final DockerHttpClient httpClient = defaultDockerHttpClient(dockerClientConfig);
         return DockerClientImpl.getInstance(dockerClientConfig, httpClient);
     }
 
-    DockerHttpClient defaultDockerHttpClient(DockerClientConfig dockerClientConfig) {
+    public DockerHttpClient defaultDockerHttpClient(DockerClientConfig dockerClientConfig) {
         return new ApacheDockerHttpClient.Builder()
                 .dockerHost(dockerClientConfig.getDockerHost())
                 .sslConfig(dockerClientConfig.getSSLConfig())

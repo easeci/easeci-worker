@@ -1,10 +1,12 @@
-package io.easeci.worker.engine;
+package io.easeci.worker.engine.docker;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import io.easeci.commons.observer.Publisher;
+import io.easeci.worker.engine.*;
+import io.easeci.worker.properties.DockerProperties;
 import io.easeci.worker.state.state.CurrentStateHolder;
 import io.easeci.worker.pipeline.PipelineState;
 import io.micronaut.context.annotation.Context;
@@ -12,7 +14,6 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.netty.DefaultHttpClient;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -26,22 +27,33 @@ import java.util.UUID;
 
 @Slf4j
 @Context
-@RequiredArgsConstructor
 public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implements Runner {
 
     private final CurrentStateHolder currentStateHolder;
     private final HttpClient httpClient;
     private final DockerClient dockerClient;
+    private final DockerProperties dockerProperties;
 
-    public DockerPlatformRunner(CurrentStateHolder currentStateHolder, DockerClientProvider dockerClientProvider) {
+    public DockerPlatformRunner(CurrentStateHolder currentStateHolder, DockerClientProvider dockerClientProvider, DockerProperties dockerProperties) {
         this.currentStateHolder = currentStateHolder;
         this.httpClient = new DefaultHttpClient();
         this.dockerClient = dockerClientProvider.defaultDockerClient();
+        this.dockerProperties = dockerProperties;
     }
 
     @PostConstruct
     public void setup() {
+        log.info("DockerPlatform setup started");
+        DockerfileResourcesLoader dockerfileResourcesLoader = new DockerfileResourcesLoader();
+        DockerBuildResultCallback dockerBuildResultCallback = new DockerBuildResultCallback();
+        DockerImageHolder dockerImageHolder = new DockerImageHolder(dockerClient, dockerProperties, dockerfileResourcesLoader, dockerBuildResultCallback);
+        try {
+            dockerImageHolder.initializeRequiredImage();
+        } catch (ContainerSystemException e) {
+            log.error("Error occurred while initialing docker container:", e);
+        }
         addSubscriber(currentStateHolder);
+        log.info("Docker Platform is ready");
     }
 
     @Override
