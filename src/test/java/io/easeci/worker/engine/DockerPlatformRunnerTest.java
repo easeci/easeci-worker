@@ -6,7 +6,9 @@ import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.Volume;
 import io.easeci.worker.engine.docker.DockerClientProvider;
 import io.easeci.worker.engine.docker.DockerPlatformRunner;
+import io.easeci.worker.pipeline.Urls;
 import io.easeci.worker.properties.DockerProperties;
+import io.easeci.worker.properties.EaseCIWorkerProperties;
 import io.easeci.worker.state.state.CurrentStateHolder;
 import io.easeci.worker.state.state.NodeProcessingState;
 import org.junit.jupiter.api.DisplayName;
@@ -40,11 +42,12 @@ class DockerPlatformRunnerTest {
         Mockito.when(dockerClientProvider.defaultDockerClient()).thenReturn(dockerClient);
 
         DockerProperties dockerProperties = Mockito.mock(DockerProperties.class);
+        EaseCIWorkerProperties easeCIWorkerProperties = Mockito.mock(EaseCIWorkerProperties.class);
 
-        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner(currentStateHolder, dockerClientProvider, dockerProperties);
+        DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner(currentStateHolder, dockerClientProvider, dockerProperties, easeCIWorkerProperties);
 
         dockerPlatformRunner.setup();
-        dockerPlatformRunner.runContainer(Paths.get("/"), UUID.randomUUID());
+        dockerPlatformRunner.runContainer(Paths.get("/"), UUID.randomUUID(), new Urls("", ""));
 
         NodeProcessingState processingState = currentStateHolder.getProcessingState();
         assertEquals(NodeProcessingState.BUSY, processingState);

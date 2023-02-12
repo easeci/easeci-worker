@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 
-
 @Slf4j
 @Singleton
 @RequiredArgsConstructor
@@ -35,7 +34,6 @@ public class PipelineExecutionFacade {
     }
 
     public ScheduleResponse handlePipeline(ScheduleRequest scheduleRequest) throws IOException {
-        NodeProcessingState nodeProcessingState = connectionStateService.startProcessingPipeline();
         log.info("Pipeline processing with pipelineContextId: {} just started", scheduleRequest.getPipelineContextId());
 
         byte[] scriptDecoded = Base64.getDecoder().decode(scheduleRequest.getScriptEncoded());
@@ -51,7 +49,7 @@ public class PipelineExecutionFacade {
 
 
 
-        dockerPlatformRunner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId());
+        dockerPlatformRunner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId(), scheduleRequest.getMetadata().getUrls());
         return mockResponse();
     }
 }

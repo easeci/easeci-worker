@@ -3,7 +3,6 @@ package io.easeci.worker.pipeline;
 import io.micronaut.core.annotation.Introspected;
 import lombok.*;
 
-import java.net.URL;
 import java.util.UUID;
 
 @Introspected
@@ -29,6 +28,6 @@ public class ScheduleRequest {
         private String masterApiVersion;
         private String masterApiVersionPrefix;
         private TransferProtocol transferProtocol;
-        private URL logUrl;
+        private Urls urls;
     }
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 @Slf4j
 class DockerBuildResultCallback implements ResultCallback<BuildResponseItem> {
 
+    private static final String whale = "🐳 ";
+
     @Override
     public void onStart(Closeable closeable) {
         log.info("Starting building docker image");
@@ -17,7 +19,6 @@ class DockerBuildResultCallback implements ResultCallback<BuildResponseItem> {
 
     @Override
     public void onNext(BuildResponseItem object) {
-        final String whale = "🐳 ";
         object.getRawValues().forEach((string, value) -> {
             if (!value.toString().isBlank()) {
                 log.info(whale + value.toString().trim());

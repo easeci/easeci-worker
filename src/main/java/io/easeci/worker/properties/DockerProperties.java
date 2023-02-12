@@ -24,5 +24,8 @@ public class DockerProperties {
 
         @NotNull
         private String producedTag;
+
+        @NotNull
+        private String pipelineProcessingImage;
     }
 }
