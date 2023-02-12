@@ -1,44 +1,53 @@
 package io.easeci.worker.engine.docker;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.*;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.LogContainerCmd;
+import com.github.dockerjava.api.command.StartContainerCmd;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Volume;
 import io.easeci.commons.observer.Publisher;
-import io.easeci.worker.engine.*;
-import io.easeci.worker.properties.DockerProperties;
-import io.easeci.worker.state.state.CurrentStateHolder;
+import io.easeci.worker.engine.ContainerSystemException;
+import io.easeci.worker.engine.EventRequest;
+import io.easeci.worker.engine.PipelineStateEvent;
+import io.easeci.worker.engine.Runner;
 import io.easeci.worker.pipeline.PipelineState;
+import io.easeci.worker.pipeline.Urls;
+import io.easeci.worker.properties.DockerProperties;
+import io.easeci.worker.properties.EaseCIWorkerProperties;
+import io.easeci.worker.state.state.CurrentStateHolder;
 import io.micronaut.context.annotation.Context;
-import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.netty.DefaultHttpClient;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+
+import static io.easeci.worker.engine.docker.EventRequestConsumerFactory.blockingHttpEventRequestConsumer;
 
 @Slf4j
 @Context
 public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implements Runner {
 
+    private static final String CONTAINER_NAME_PREFIX = "easeci-debian-base";
     private final CurrentStateHolder currentStateHolder;
     private final HttpClient httpClient;
     private final DockerClient dockerClient;
     private final DockerProperties dockerProperties;
+    private final EaseCIWorkerProperties easeCIWorkerProperties;
 
-    public DockerPlatformRunner(CurrentStateHolder currentStateHolder, DockerClientProvider dockerClientProvider, DockerProperties dockerProperties) {
+    public DockerPlatformRunner(CurrentStateHolder currentStateHolder, DockerClientProvider dockerClientProvider,
+                                DockerProperties dockerProperties, EaseCIWorkerProperties easeCIWorkerProperties) {
         this.currentStateHolder = currentStateHolder;
         this.httpClient = new DefaultHttpClient();
         this.dockerClient = dockerClientProvider.defaultDockerClient();
         this.dockerProperties = dockerProperties;
+        this.easeCIWorkerProperties = easeCIWorkerProperties;
     }
 
     @PostConstruct
@@ -57,124 +66,53 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
     }
 
     @Override
-    public void execution(File file) {
-        addSubscriber(currentStateHolder);
-//        InputStreamReader inputStreamReader = new InputStreamReader(response.getBody());
-//        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-//        bufferedReader.lines().forEach(System.out::println);
-
-        System.out.println("-------------- CONNECTION TO DOCKER IS OK-----------------");
-
-        List<Image> images = dockerClient.listImagesCmd().exec();
-        images.stream().forEach(image -> System.out.println(image.toString()));
-
-        dockerClient.pingCmd().exec();
-
-
-    }
-
-    public void fetchBuildContainer() {
-        PullImageCmd pullImageCmd = dockerClient.pullImageCmd("debian")
-                .withRepository("debian")
-                .withTag("stable-slim");
-        pullImageCmd.exec(new ResultCallback<PullResponseItem>() {
-            @Override
-            public void onStart(Closeable closeable) {
-                log.info("Pulling image");
-            }
-
-            @Override
-            public void onNext(PullResponseItem object) {
-                log.info(object.getStatus());
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void onComplete() {
-                log.info("Pulling image completed");
-            }
-
-            @Override
-            public void close() throws IOException {
-                log.info("Closed command");
-            }
-        });
-    }
-
-    public void runContainer(Path mountPoint, UUID pipelineContextId) {
+    public void runContainer(Path mountPoint, UUID pipelineContextId, Urls urls) {
         log.info("Runner just received Pipeline to run with pipelineContextId: {}", pipelineContextId);
         runPipelineEvent();
+        CreateContainerCmd containerCmd = createContainerCmd(mountPoint, pipelineContextId);
+        log.info("Mounted path as docker volume: {}", mountPoint);
 
-        // create container
-        CreateContainerCmd containerCmd = dockerClient.createContainerCmd("easeci-debian-base:v1.0")
-                .withVolumes(new Volume(mountPoint.toString()))
-                .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
-                .withName("easeci-debian-base".concat(pipelineContextId.toString()))
-//                .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
-                .withTty(true)
-                .withCmd("python3", mountPoint.toString().concat("/pipeline-script.py"));
-        log.info("Mounted path: {}", mountPoint);
-        CreateContainerResponse container = containerCmd.exec();
-        String id = container.getId();
-        System.out.println("Container id: " +  id);
+        CreateContainerResponse createContainerResponse = containerCmd.exec();
+        String containerId = createContainerResponse.getId();
 
-        StartContainerCmd startContainerCmd = dockerClient.startContainerCmd(container.getId());
+        log.info("Created container with id: {}", createContainerResponse);
+
+        StartContainerCmd startContainerCmd = dockerClient.startContainerCmd(createContainerResponse.getId());
         startContainerCmd.exec();
 
-        LogContainerCmd logContainerCmd = dockerClient.logContainerCmd(id)
+        LogContainerCmd logContainerCmd = logContainerCmd(containerId);
+
+        Consumer<EventRequest> eventRequestConsumer = blockingHttpEventRequestConsumer(httpClient, urls.httpLogUrl());
+
+        EventRequestHandler eventRequestHandler = new EventRequestHandler(eventRequestConsumer);
+        DockerPipelineRunResultCallback dockerPipelineRunResultCallback = new DockerPipelineRunResultCallback(pipelineContextId,
+                containerId, eventRequestHandler, easeCIWorkerProperties, this::finishedPipelineEvent);
+
+        logContainerCmd.exec(dockerPipelineRunResultCallback);
+    }
+
+    private LogContainerCmd logContainerCmd(String containerId) {
+        return dockerClient.logContainerCmd(containerId)
                 .withStdOut(true)
                 .withStdErr(true)
                 .withSince(0)
                 .withFollowStream(true)
                 .withTimestamps(false);
-
-        logContainerCmd.exec(resultCallback(id, pipelineContextId));
-
-
-        InspectContainerCmd inspectContainerCmd = dockerClient.inspectContainerCmd(id);
-        InspectContainerResponse inspectContainerResponse = inspectContainerCmd.exec();
-        InspectContainerResponse.ContainerState state = inspectContainerResponse.getState();
-        System.out.println(state.getStatus());
     }
 
-    private ResultCallback<Frame> resultCallback(String containerId, UUID pipelineContextId) {
-        return new ResultCallback<Frame>() {
-            @Override
-            public void onStart(Closeable closeable) {
-                log.info("Start listening logs of container: {}", containerId);
-            }
+    private CreateContainerCmd createContainerCmd(Path mountPoint, UUID pipelineContextId) {
+        return dockerClient.createContainerCmd(dockerProperties.getBaseImage().getPipelineProcessingImage())
+                .withVolumes(new Volume(mountPoint.toString()))
+                .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
+                .withName(CONTAINER_NAME_PREFIX.concat(pipelineContextId.toString()))
+                .withTty(true)
+                .withCmd(prepareContainerCommand(mountPoint));
+    }
 
-            @Override
-            public void onNext(Frame object) {
-
-                log.info(new String(object.getPayload()));
-
-                EventRequest eventRequest = new EventRequest(pipelineContextId, UUID.randomUUID(), "worker-node-01",
-                        List.of(new IncomingLogEntry("Log", new String(object.getPayload()), "INFO", Instant.now().getEpochSecond())));
-
-                Mono.from(httpClient.exchange(HttpRequest.POST("http://localhost:9000/api/v1/ws/logs", eventRequest)))
-                        .block();
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void onComplete() {
-                log.info("Pipeline processing ends");
-                finishedPipelineEvent();
-            }
-
-            @Override
-            public void close() throws IOException {
-                log.info("Closing mechanism of listening logs of container: {}", containerId);
-            }
+    private String[] prepareContainerCommand(Path mountPoint) {
+        return new String[] {
+                "python3",
+                mountPoint.toString().concat("/pipeline-script.py")
         };
     }
 

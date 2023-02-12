@@ -18,3 +18,4 @@ docker:
     repository: debian
     tag: stable-slim
     produced-tag: easeci-worker-base-platform:1.0.0
+    pipeline-processing-image: easeci-worker-base-platform:1.0.0

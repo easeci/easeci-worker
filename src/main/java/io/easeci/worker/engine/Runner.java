@@ -1,8 +1,11 @@
 package io.easeci.worker.engine;
 
-import java.io.File;
+import io.easeci.worker.pipeline.Urls;
+
+import java.nio.file.Path;
+import java.util.UUID;
 
 public interface Runner {
 
-    void execution(File file);
+    void runContainer(Path mountPoint, UUID pipelineContextId, Urls urls);
 }
