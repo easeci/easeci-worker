@@ -14,8 +14,16 @@ easeci:
     domain-name: ${WORKER_NODE_DOMAIN_NAME:}
 docker:
   base-image:
-    resources-path: "dockerfiles/BaseImageDockerfile"
+    resources-path: "dockerfiles/Dockerfile_base_image"
     repository: debian
     tag: stable-slim
     produced-tag: easeci-worker-base-platform:1.0.0
-    pipeline-processing-image: easeci-worker-base-platform:1.0.0
+  predefined_images:
+    - name: "easeci-default"
+      repository: "easeci-worker-base-platform"
+      tag: "1.0.0"
+      resources-path: "dockerfiles/Dockerfile_base_image"
+    - name: "easeci-java-17"
+      repository: "easeci-java-17"
+      tag: "1.0.0"
+      resources-path: "dockerfiles/Dockerfile_java_17"

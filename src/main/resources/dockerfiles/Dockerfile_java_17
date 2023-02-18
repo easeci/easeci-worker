@@ -1,0 +1,6 @@
+FROM debian:stable-slim
+
+RUN apt-get -y update && \
+    apt install -y python3 && \
+    apt install -y git && \
+    apt install -y openjdk-17-jdk

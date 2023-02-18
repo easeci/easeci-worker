@@ -9,7 +9,6 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
 import io.easeci.commons.observer.Publisher;
-import io.easeci.worker.engine.ContainerSystemException;
 import io.easeci.worker.engine.EventRequest;
 import io.easeci.worker.engine.PipelineStateEvent;
 import io.easeci.worker.engine.Runner;
@@ -56,11 +55,7 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
         DockerfileResourcesLoader dockerfileResourcesLoader = new DockerfileResourcesLoader();
         DockerBuildResultCallback dockerBuildResultCallback = new DockerBuildResultCallback();
         DockerImageHolder dockerImageHolder = new DockerImageHolder(dockerClient, dockerProperties, dockerfileResourcesLoader, dockerBuildResultCallback);
-        try {
-            dockerImageHolder.initializeRequiredImage();
-        } catch (ContainerSystemException e) {
-            log.error("Error occurred while initialing docker container:", e);
-        }
+        dockerImageHolder.initializeRequiredImages();
         addSubscriber(currentStateHolder);
         log.info("Docker Platform is ready");
     }
@@ -101,7 +96,7 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
     }
 
     private CreateContainerCmd createContainerCmd(Path mountPoint, UUID pipelineContextId) {
-        return dockerClient.createContainerCmd(dockerProperties.getBaseImage().getPipelineProcessingImage())
+        return dockerClient.createContainerCmd(dockerProperties.getPredefinedImages().get(0).reference())  // todo, move it to scheduling request
                 .withVolumes(new Volume(mountPoint.toString()))
                 .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
                 .withName(CONTAINER_NAME_PREFIX.concat(pipelineContextId.toString()))
