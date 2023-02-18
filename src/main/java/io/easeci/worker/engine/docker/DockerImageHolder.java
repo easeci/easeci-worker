@@ -19,9 +19,17 @@ public class DockerImageHolder {
     private final DockerfileResourcesLoader dockerfileResourcesLoader;
     private final DockerBuildResultCallback dockerBuildResultCallback;
 
-    public void initializeRequiredImage() throws ContainerSystemException {
-        final String dockerfilePath = dockerProperties.getBaseImage().getResourcesPath();
-        final String producedImageTag = dockerProperties.getBaseImage().getProducedTag();
+    public void initializeRequiredImages() {
+        dockerProperties.getPredefinedImages().forEach(image -> {
+            try {
+                initializeImage(image.getResourcesPath(), image.reference());
+            } catch (ContainerSystemException exception) {
+                log.error("Error occurred while initializing docker image with reference: {}", image.reference(), exception);
+            }
+        });
+    }
+
+    private void initializeImage(String dockerfilePath, String producedImageTag) throws ContainerSystemException {
         if (isDockerImageExists(producedImageTag)) {
             log.info("Docker image tagged as: {} just exists in docker server", producedImageTag);
             return;
