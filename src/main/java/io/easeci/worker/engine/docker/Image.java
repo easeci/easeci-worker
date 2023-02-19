@@ -1,8 +1,10 @@
-package io.easeci.worker.engine;
+package io.easeci.worker.engine.docker;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class Image {
     private String name;
     private String repository;

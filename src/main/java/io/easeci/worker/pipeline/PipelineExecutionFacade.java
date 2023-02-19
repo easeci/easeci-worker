@@ -1,26 +1,24 @@
 package io.easeci.worker.pipeline;
 
-import io.easeci.worker.state.state.ConnectionStateService;
+import io.easeci.worker.engine.PipelineProcessingEnvironment;
+import io.easeci.worker.engine.docker.DockerPlatformRunner;
 import io.easeci.worker.state.state.NodeConnectionState;
 import io.easeci.worker.state.state.NodeProcessingState;
-import io.easeci.worker.engine.docker.DockerPlatformRunner;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.Instant;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.Base64;
 
 @Slf4j
 @Singleton
 @RequiredArgsConstructor
 public class PipelineExecutionFacade {
-    private final ConnectionStateService connectionStateService;
     private final DockerPlatformRunner dockerPlatformRunner;
 
     public ScheduleResponse mockResponse() {
@@ -46,10 +44,15 @@ public class PipelineExecutionFacade {
         Path file = Files.createFile(Path.of(pipelineContextDir.toString().concat("/pipeline-script.py")));
         Path executableFile = Files.write(file, scriptDecoded);
 
+        String environmentName = "easeci-default";
+        if (scheduleRequest.getEnvironment() != null && scheduleRequest.getEnvironment().getName() != null) {
+            environmentName = scheduleRequest.getEnvironment().getName();
+        }
 
+        PipelineProcessingEnvironment pipelineProcessingEnvironment = new PipelineProcessingEnvironment(environmentName, executableFile,
+                scheduleRequest.getPipelineContextId(), scheduleRequest.getMetadata().getUrls());
 
-
-        dockerPlatformRunner.runContainer(pipelineContextDir, scheduleRequest.getPipelineContextId(), scheduleRequest.getMetadata().getUrls());
+        dockerPlatformRunner.runContainer(pipelineProcessingEnvironment);
         return mockResponse();
     }
 }
