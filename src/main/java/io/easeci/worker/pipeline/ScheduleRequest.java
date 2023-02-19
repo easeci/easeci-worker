@@ -10,17 +10,16 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @ToString(exclude = "scriptEncoded")
-@AllArgsConstructor(staticName = "of")
 public class ScheduleRequest {
     private UUID pipelineContextId;
     private String scriptEncoded;
     private Metadata metadata;
+    private Environment environment;
 
     @Setter
     @Getter
     @NoArgsConstructor
     @ToString
-    @AllArgsConstructor(staticName = "of")
     public static class Metadata {
         private String masterNodeName;
         private String masterApplicationVersion;
@@ -29,5 +28,11 @@ public class ScheduleRequest {
         private String masterApiVersionPrefix;
         private TransferProtocol transferProtocol;
         private Urls urls;
+    }
+
+    @Data
+    @ToString
+    public static class Environment {
+        private String name;
     }
 }

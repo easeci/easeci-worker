@@ -47,7 +47,8 @@ class DockerPlatformRunnerTest {
         DockerPlatformRunner dockerPlatformRunner = new DockerPlatformRunner(currentStateHolder, dockerClientProvider, dockerProperties, easeCIWorkerProperties);
 
         dockerPlatformRunner.setup();
-        dockerPlatformRunner.runContainer(Paths.get("/"), UUID.randomUUID(), new Urls("", ""));
+        PipelineProcessingEnvironment pipelineProcessingEnvironment = new PipelineProcessingEnvironment("default", Paths.get("/"), UUID.randomUUID(), new Urls("", ""));
+        dockerPlatformRunner.runContainer(pipelineProcessingEnvironment);
 
         NodeProcessingState processingState = currentStateHolder.getProcessingState();
         assertEquals(NodeProcessingState.BUSY, processingState);

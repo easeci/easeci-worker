@@ -9,11 +9,8 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
 import io.easeci.commons.observer.Publisher;
-import io.easeci.worker.engine.EventRequest;
-import io.easeci.worker.engine.PipelineStateEvent;
-import io.easeci.worker.engine.Runner;
+import io.easeci.worker.engine.*;
 import io.easeci.worker.pipeline.PipelineState;
-import io.easeci.worker.pipeline.Urls;
 import io.easeci.worker.properties.DockerProperties;
 import io.easeci.worker.properties.EaseCIWorkerProperties;
 import io.easeci.worker.state.state.CurrentStateHolder;
@@ -24,6 +21,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -33,6 +31,7 @@ import static io.easeci.worker.engine.docker.EventRequestConsumerFactory.blockin
 @Context
 public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implements Runner {
 
+    private static final String DEFAULT_IMAGE_NAME = "easeci-default";
     private static final String CONTAINER_NAME_PREFIX = "easeci-debian-base";
     private final CurrentStateHolder currentStateHolder;
     private final HttpClient httpClient;
@@ -61,11 +60,18 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
     }
 
     @Override
-    public void runContainer(Path mountPoint, UUID pipelineContextId, Urls urls) {
-        log.info("Runner just received Pipeline to run with pipelineContextId: {}", pipelineContextId);
+    public void runContainer(PipelineProcessingEnvironment pipelineProcessingEnvironment) {
+        log.info("Runner just received Pipeline to run with pipelineContextId: {}", pipelineProcessingEnvironment.getPipelineContextId());
         runPipelineEvent();
-        CreateContainerCmd containerCmd = createContainerCmd(mountPoint, pipelineContextId);
-        log.info("Mounted path as docker volume: {}", mountPoint);
+
+        Image image = findImageByName(pipelineProcessingEnvironment.getProcessingEnvironmentName())
+                .orElseGet(() -> findImageByName(DEFAULT_IMAGE_NAME)
+                        .orElseThrow(() -> new ProcessingEnvironmentException("Cannot find any environment to processing pipeline with pipelineContextId: " + pipelineProcessingEnvironment.getPipelineContextId())));
+
+        log.info("Image chosen for pipeline processing: {}", image);
+
+        CreateContainerCmd containerCmd = createContainerCmd(pipelineProcessingEnvironment.getMountPoint(), pipelineProcessingEnvironment.getPipelineContextId(), image);
+        log.info("Mounted path as docker volume: {}", pipelineProcessingEnvironment.getMountPoint());
 
         CreateContainerResponse createContainerResponse = containerCmd.exec();
         String containerId = createContainerResponse.getId();
@@ -77,13 +83,19 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
 
         LogContainerCmd logContainerCmd = logContainerCmd(containerId);
 
-        Consumer<EventRequest> eventRequestConsumer = blockingHttpEventRequestConsumer(httpClient, urls.httpLogUrl());
+        Consumer<EventRequest> eventRequestConsumer = blockingHttpEventRequestConsumer(httpClient, pipelineProcessingEnvironment.getUrls().httpLogUrl());
 
         EventRequestHandler eventRequestHandler = new EventRequestHandler(eventRequestConsumer);
-        DockerPipelineRunResultCallback dockerPipelineRunResultCallback = new DockerPipelineRunResultCallback(pipelineContextId,
+        DockerPipelineRunResultCallback dockerPipelineRunResultCallback = new DockerPipelineRunResultCallback(pipelineProcessingEnvironment.getPipelineContextId(),
                 containerId, eventRequestHandler, easeCIWorkerProperties, this::finishedPipelineEvent);
 
         logContainerCmd.exec(dockerPipelineRunResultCallback);
+    }
+
+    private Optional<Image> findImageByName(String imageName) {
+        return dockerProperties.getPredefinedImages().stream()
+                .filter(image -> image.getName().equals(imageName))
+                .findFirst();
     }
 
     private LogContainerCmd logContainerCmd(String containerId) {
@@ -95,8 +107,8 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
                 .withTimestamps(false);
     }
 
-    private CreateContainerCmd createContainerCmd(Path mountPoint, UUID pipelineContextId) {
-        return dockerClient.createContainerCmd(dockerProperties.getPredefinedImages().get(0).reference())  // todo, move it to scheduling request
+    private CreateContainerCmd createContainerCmd(Path mountPoint, UUID pipelineContextId, Image image) {
+        return dockerClient.createContainerCmd(image.reference())
                 .withVolumes(new Volume(mountPoint.toString()))
                 .withHostConfig(HostConfig.newHostConfig().withBinds(new Bind(mountPoint.toString(), new Volume(mountPoint.toString()))))
                 .withName(CONTAINER_NAME_PREFIX.concat(pipelineContextId.toString()))
@@ -105,9 +117,9 @@ public class DockerPlatformRunner extends Publisher<PipelineStateEvent> implemen
     }
 
     private String[] prepareContainerCommand(Path mountPoint) {
-        return new String[] {
+        return new String[]{
                 "python3",
-                mountPoint.toString().concat("/pipeline-script.py")
+                mountPoint.toString()
         };
     }
 

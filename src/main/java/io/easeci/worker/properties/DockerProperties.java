@@ -1,6 +1,6 @@
 package io.easeci.worker.properties;
 
-import io.easeci.worker.engine.Image;
+import io.easeci.worker.engine.docker.Image;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.validation.Valid;
 import lombok.Data;
